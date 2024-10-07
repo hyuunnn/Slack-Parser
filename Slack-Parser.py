@@ -1,3 +1,7 @@
+def clean_url(value):
+    if value[1:].startswith('https'):
+        return value[1:]
+    return value
 def data(file_name):
         with open(file_name, encoding="latin-1") as file:
                 slack_data = file.read()
@@ -63,6 +67,24 @@ def messages(data):
                 if data[i] == 'text' and data[i+1] == 'text':
                         print(str(data[i+2]))
         return
+def files(data):
+    files = {}
+    infos = ["name", "user", "url_private_download", "permalink"]
+    for i in range(len(data)):
+        if data[i] == 'name' and data[i+2] == 'title' and data[i+4] == 'mimetype':
+            file_info = {}
+            for info in infos:
+                try:
+                        file_info[info] = data[data.index(info, i)+1]
+                        if info in ['url_private_download', 'permalink']:
+                                file_info[info] = clean_url(file_info[info])
+                except:
+                    file_info[info] = "Not Found"
+            files[file_info["name"]] = file_info
+    print("{:<40} {:<20} {:<60} {:<60}".format("Name", "User", "Download URL", "Permalink"))
+    for name, file_info in files.items():
+        print("{:<40} {:<20} {:<60} {:<60}".format(name, file_info["user"], file_info["url_private_download"], file_info["permalink"]))
+    return
 def workspace(data):
         infos = {"domain":"", "channels":[]}
         for i in range(len(data)):
@@ -89,10 +111,10 @@ if __name__ == '__main__':
                 print("Please Enter a valid Slack Database")
                 exit()
         while 1:
-                        function_name = input("Insert the data you want (users, messages, workspace): ")
+                        function_name = input("Insert the data you want (users, messages, files, workspace): ")
                         if function_name == "users":
                                 eval(function_name + "(data)")
-                        elif function_name in ["users", "messages","workspace","exit"]:
+                        elif function_name in ["users", "messages","workspace", "files", "exit"]:
                                 eval(function_name + "(strings)")
                         else:
                                 print("Error occurred Try-Again")
